@@ -3,48 +3,39 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import api from "@/app/lib/api";
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  age?: number;
-}
+import { useUserStore } from "@/app/store/userStore";
 
 export default function UserDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [user, setUser] = useState<User | null>(null);
+  const { currentUser, fetchUser, updateUser, deleteUser } = useUserStore();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [age, setAge] = useState("");
 
   useEffect(() => {
-    api.get<User>(`/api/users/${id}`).then(({ data }) => {
-      setUser(data);
-      setName(data.name);
-      setEmail(data.email);
-      setAge(data.age?.toString() || "");
-    });
-  }, [id]);
+    fetchUser(id);
+  }, [id, fetchUser]);
 
-  async function updateUser(e: React.FormEvent) {
+  useEffect(() => {
+    if (currentUser) {
+      setName(currentUser.name);
+      setEmail(currentUser.email);
+      setAge(currentUser.age?.toString() || "");
+    }
+  }, [currentUser]);
+
+  async function handleUpdate(e: React.FormEvent) {
     e.preventDefault();
-    const { data } = await api.put<User>(`/api/users/${id}`, {
-      name,
-      email,
-      age: age ? Number(age) : undefined,
-    });
-    setUser(data);
+    await updateUser(id, { name, email, age: age ? Number(age) : undefined });
   }
 
-  async function deleteUser() {
-    await api.delete(`/api/users/${id}`);
+  async function handleDelete() {
+    await deleteUser(id);
     router.push("/users");
   }
 
-  if (!user) return <div className="p-4">Loading...</div>;
+  if (!currentUser) return <div className="p-4">Loading...</div>;
 
   return (
     <div className="p-4 max-w-md mx-auto">
@@ -53,7 +44,7 @@ export default function UserDetailPage() {
       </Link>
       <h1 className="text-2xl font-bold mt-2 mb-4">Edit User</h1>
 
-      <form onSubmit={updateUser} className="space-y-3">
+      <form onSubmit={handleUpdate} className="space-y-3">
         <input
           placeholder="Name"
           value={name}
@@ -81,7 +72,7 @@ export default function UserDetailPage() {
           </button>
           <button
             type="button"
-            onClick={deleteUser}
+            onClick={handleDelete}
             className="bg-red-500 text-white rounded px-3 py-1"
           >
             Delete

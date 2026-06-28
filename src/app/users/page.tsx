@@ -2,48 +2,31 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import api from "@/app/lib/api";
-
-interface User {
-  _id: string;
-  name: string;
-  email: string;
-  age?: number;
-}
+import { useUserStore } from "@/app/store/userStore";
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
+  const { users, fetchUsers, createUser, deleteUser } = useUserStore();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [age, setAge] = useState("");
 
   useEffect(() => {
-    api.get<User[]>("/api/users").then(({ data }) => setUsers(data));
-  }, []);
+    fetchUsers();
+  }, [fetchUsers]);
 
-  async function createUser(e: React.FormEvent) {
+  async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
-    const { data } = await api.post<User>("/api/users", {
-      name,
-      email,
-      age: age ? Number(age) : undefined,
-    });
-    setUsers((prev) => [...prev, data]);
+    await createUser({ name, email, age: age ? Number(age) : undefined });
     setName("");
     setEmail("");
     setAge("");
-  }
-
-  async function deleteUser(id: string) {
-    await api.delete(`/api/users/${id}`);
-    setUsers((prev) => prev.filter((u) => u._id !== id));
   }
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">Users</h1>
 
-      <form onSubmit={createUser} className="flex gap-2 mb-6">
+      <form onSubmit={handleCreate} className="flex gap-2 mb-6">
         <input
           placeholder="Name"
           value={name}
