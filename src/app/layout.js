@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import Link from 'next/link'
+import { Toaster } from "sonner";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -24,12 +25,16 @@ export default function RootLayout({ children }) {
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-              <nav className="flex gap-4">
+              <nav className="flex gap-4 items-center">
         <Link href="/">Logo</Link>
         <Link href="/">Home</Link>
         <Link href="/users">Users</Link>
+        <Link href="/login">Login</Link>
+        <Link href="/signup">Sign Up</Link>
+        <Link href="/profile">Profile</Link>
       </nav>
-        {children}</body>
+        {children}
+        <Toaster richColors position="top-right" /></body>
     </html>
   );
 }
